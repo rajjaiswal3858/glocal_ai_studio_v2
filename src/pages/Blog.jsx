@@ -34,11 +34,11 @@ function BlogList({ posts }) {
                     <h2 className="font-display font-bold text-white text-2xl md:text-3xl tracking-[-0.01em] leading-[1.15] mb-4 group-hover:text-white/70 transition-colors duration-300">{featured.title}</h2>
                     <p className="font-body text-white/40 text-sm leading-relaxed">{featured.excerpt}</p>
                   </div>
-                  <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/[0.05]">
-                    <div className="flex items-center gap-4">
-                      <span className="font-body text-white/20 text-xs">By Glocal AI Studio</span>
-                      <span className="font-body text-white/20 text-xs">{featured.date}</span>
-                      <span className="font-body text-white/20 text-xs">{featured.readTime}</span>
+                  <div className="flex items-center justify-between gap-4 mt-8 pt-6 border-t border-white/[0.05]">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 min-w-0">
+                      <span className="font-body text-white/20 text-xs whitespace-nowrap">By Glocal AI Studio</span>
+                      <span className="font-body text-white/20 text-xs whitespace-nowrap">{featured.date}</span>
+                      <span className="font-body text-white/20 text-xs whitespace-nowrap">{featured.readTime}</span>
                     </div>
                     <div className="flex items-center gap-2 font-body text-xs uppercase tracking-[0.18em] text-white/30 group-hover:text-white transition-colors duration-300">
                       Read
@@ -81,11 +81,11 @@ function BlogList({ posts }) {
                     </div>
                     <h3 className="font-display font-bold text-white text-lg leading-[1.25] mb-3 group-hover:text-white/60 transition-colors duration-300">{post.title}</h3>
                     <p className="font-body text-white/30 text-sm leading-relaxed line-clamp-2">{post.excerpt}</p>
-                    <div className="flex items-center justify-between mt-5 pt-4 border-t border-white/[0.05]">
-                      <div className="flex items-center gap-3">
-                        <span className="font-body text-white/20 text-xs">By Glocal AI Studio</span>
-                        <span className="font-body text-white/20 text-xs">{post.date}</span>
-                        <span className="font-body text-white/20 text-xs">{post.readTime}</span>
+                    <div className="flex items-center justify-between gap-3 mt-5 pt-4 border-t border-white/[0.05]">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+                        <span className="font-body text-white/20 text-xs whitespace-nowrap">By Glocal AI Studio</span>
+                        <span className="font-body text-white/20 text-xs whitespace-nowrap">{post.date}</span>
+                        <span className="font-body text-white/20 text-xs whitespace-nowrap">{post.readTime}</span>
                       </div>
                       <ArrowUpRight size={12} strokeWidth={1.5} className="text-white/20 group-hover:text-white transition-colors duration-300" />
                     </div>

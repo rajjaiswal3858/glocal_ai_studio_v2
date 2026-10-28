@@ -51,11 +51,11 @@ export default function BlogPost() {
       <header className="bg-bg-primary pt-12 pb-0">
         <div className="max-w-4xl mx-auto px-6 md:px-10">
           <FadeInUp>
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6">
               <span className="font-body text-white/20 text-xs uppercase tracking-[0.18em] border border-white/[0.08] px-3 py-1">{post.category}</span>
-              <span className="font-body text-white/20 text-xs">By Glocal AI Studio</span>
-              <span className="font-body text-white/20 text-xs">{post.date}</span>
-              <span className="font-body text-white/20 text-xs">{post.readTime}</span>
+              <span className="font-body text-white/20 text-xs whitespace-nowrap">By Glocal AI Studio</span>
+              <span className="font-body text-white/20 text-xs whitespace-nowrap">{post.date}</span>
+              <span className="font-body text-white/20 text-xs whitespace-nowrap">{post.readTime}</span>
             </div>
             <h1 className="font-display font-bold text-white text-3xl md:text-5xl tracking-[-0.02em] leading-[1.1] mb-6">{post.title}</h1>
             <p className="font-body text-white/40 text-lg leading-relaxed max-w-2xl">{post.excerpt}</p>

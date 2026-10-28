@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+﻿import { useEffect, useRef } from 'react'
 import useIsMobile from '../../lib/useIsMobile'
 import LazyVideo from '../ui/LazyVideo'
+import FullFrameMedia from '../ui/FullFrameMedia'
 import { posterSrc, videoSrc } from '../../lib/media'
 /**
  * 5x alpha-only mask built from /glocal-logo.png: the logo is scaled up to 5.5x
@@ -20,6 +21,11 @@ const TEXT_LIGHT = [242, 228, 194]
 /** Manifesto copy, one entry per line (line breaks only apply from md up). */
 const LINES = ['An AI studio built for the GenAI era,', 'reimagining how visionary artists create films,', 'series, and new forms of storytelling.']
 const WORDS = LINES.flatMap((line, li) => line.split(' ').map((word) => ({ word, line: li })))
+
+/** Scroll progress at which the gold line is fully drawn. */
+const LINE_DRAWN = 0.9
+/** Extra scroll (px, roughly 1 cm) past the fully drawn line before it fades out. */
+const LINE_FADE_AFTER = 40
 
 const lerp = (a, b, t) => a + (b - a) * t
 const clamp01 = (v) => Math.max(0, Math.min(1, v))
@@ -43,6 +49,7 @@ const maskStyle = {
  */
 export default function ManifestoSection() {
   const sectionRef = useRef(null)
+  const stickyRef = useRef(null)
   const maskRef = useRef(null)
   const lineRef = useRef(null)
   const bgRef = useRef(null)
@@ -51,14 +58,22 @@ export default function ManifestoSection() {
   const isMobile = useIsMobile()
 
   useEffect(() => {
+    let lastColor = ''
     const update = () => {
       const section = sectionRef.current
+      const sticky = stickyRef.current
       const mask = maskRef.current
       const line = lineRef.current
       const bg = bgRef.current
       const text = textRef.current
-      if (!section || !mask || !line || !bg || !text) return
-      const progress = clamp01(-section.getBoundingClientRect().top / (section.offsetHeight - window.innerHeight))
+      if (!section || !sticky || !mask || !line || !bg || !text) return
+      // The sticky frame's height (100vh) stays fixed while a phone's address bar
+      // shows and hides, unlike window.innerHeight, so progress never jumps mid-scroll.
+      const vh = sticky.offsetHeight
+      const rect = section.getBoundingClientRect()
+      // Nothing to animate while the section is off screen.
+      if (rect.bottom < -vh || rect.top > vh * 2) return
+      const progress = clamp01(-rect.top / (section.offsetHeight - vh))
       const small = window.innerWidth < 768
       const maxScale = small ? 3.5 : 5.5
       const maxLift = small ? -400 : -900
@@ -80,12 +95,22 @@ export default function ManifestoSection() {
 
       // The background clip is uncovered as the logo dissolves, settling from a slow zoom.
       const uncover = range(0.28, 0.5, progress)
-      bg.style.transform = `scale(${lerp(1.12, 1, range(0.28, 0.8, progress))})`
+      // Phones skip the zoom so the whole uncropped frame stays in view.
+      bg.style.transform = `scale(${small ? 1 : lerp(1.12, 1, range(0.28, 0.8, progress))})`
       // Text turns from dark brown to champagne so it stays readable over the video.
-      text.style.color = `rgb(${TEXT_DARK.map((c, k) => Math.round(lerp(c, TEXT_LIGHT[k], uncover))).join(',')})`
+      // Recolouring repaints the shadowed text, so only do it when the colour actually changes.
+      const color = `rgb(${TEXT_DARK.map((c, k) => Math.round(lerp(c, TEXT_LIGHT[k], uncover))).join(',')})`
+      if (color !== lastColor) {
+        text.style.color = color
+        lastColor = color
+      }
 
-      // The gold line draws down beneath the sentence.
-      line.style.height = `${lerp(0, Math.min(160, window.innerHeight * 0.18), range(0.62, 0.9, progress))}px`
+      // The gold line draws down beneath the sentence (scaleY avoids a layout per frame).
+      line.style.height = `${Math.min(160, vh * 0.18)}px`
+      line.style.transform = `scaleY(${range(0.62, LINE_DRAWN, progress)})`
+      // Once it is fully drawn, a little more scrolling fades it out on a timed transition.
+      const drawnAt = LINE_DRAWN * (section.offsetHeight - vh)
+      line.style.opacity = -rect.top > drawnAt + LINE_FADE_AFTER ? '0' : '1'
     }
     // Coalesce scroll events into one update per frame.
     let frame = 0
@@ -107,17 +132,29 @@ export default function ManifestoSection() {
   }, [])
 
   return (
-    <section ref={sectionRef} style={{ backgroundColor: '#F5F4F0', height: isMobile ? '170vh' : '340vh', position: 'relative' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }}>
+    <section ref={sectionRef} style={{ backgroundColor: '#F5F4F0', height: isMobile ? '260vh' : '340vh', position: 'relative' }}>
+      <div ref={stickyRef} style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }}>
         {/* Background video, the same treatment as the homepage hero. */}
         <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundColor: '#080808', overflow: 'hidden' }}>
           <div ref={bgRef} style={{ position: 'absolute', inset: 0, transform: 'scale(1.12)', willChange: 'transform' }}>
-            <LazyVideo
-              persistent
-              src={videoSrc(BG_VIDEO, isMobile ? '720' : '1080')}
-              poster={posterSrc(BG_VIDEO, 'hero')}
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
-            />
+            {isMobile ? (
+              // Phones: the whole, uncropped 16:9 frame inside an ambient fill.
+              <FullFrameMedia poster={posterSrc(BG_VIDEO, 'hero')}>
+                <LazyVideo
+                  persistent
+                  src={videoSrc(BG_VIDEO, '720')}
+                  poster={posterSrc(BG_VIDEO, 'hero')}
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.85 }}
+                />
+              </FullFrameMedia>
+            ) : (
+              <LazyVideo
+                persistent
+                src={videoSrc(BG_VIDEO, '1080')}
+                poster={posterSrc(BG_VIDEO, 'hero')}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+              />
+            )}
           </div>
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(8,8,8,0.45) 0%, rgba(8,8,8,0.35) 50%, rgba(8,8,8,0.6) 100%)' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, rgba(8,8,8,0.35) 0%, transparent 70%)' }} />
@@ -160,7 +197,7 @@ export default function ManifestoSection() {
             ))}
           </p>
 
-          <div ref={lineRef} style={{ width: '1.5px', height: '0px', marginTop: 'clamp(20px, 3.5vh, 40px)', background: 'linear-gradient(to bottom, rgba(220,171,89,0.2), #DCAB59)' }} />
+          <div ref={lineRef} style={{ width: '1.5px', height: '0px', transform: 'scaleY(0)', transformOrigin: 'top', transition: 'opacity 0.6s ease', marginTop: 'clamp(20px, 3.5vh, 40px)', background: 'linear-gradient(to bottom, rgba(220,171,89,0.2), #DCAB59)' }} />
 
         </div>
 
@@ -175,7 +212,10 @@ export default function ManifestoSection() {
             alignItems: 'center',
             justifyContent: 'center',
             transformOrigin: 'center center',
-            // No will-change here: it freezes the layer as a scale(1) bitmap that is then stretched up to 5.5x.
+            // Desktop skips will-change: it freezes the layer as a scale(1) bitmap that is then stretched up to 5.5x.
+            // Phones need it: re-rasterising the masked video at every scale step is what made scrolling stutter,
+            // and the logo has faded out before the softer GPU scaling becomes noticeable.
+            willChange: isMobile ? 'transform, opacity' : undefined,
           }}
         >
           <div

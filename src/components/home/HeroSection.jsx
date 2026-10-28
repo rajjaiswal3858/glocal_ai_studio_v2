@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import CalendlyLink from '../ui/CalendlyLink'
+import FullFrameMedia from '../ui/FullFrameMedia'
 import useIsMobile from '../../lib/useIsMobile'
 import { videoSrc } from '../../lib/media'
 import { SITE_TAGLINE } from '../../data/site'
 
-/** First-paint frame of the showreel (also the LCP image). */
-const POSTER = '/posters/showreel-1920.webp'
+/** First-paint frame of the hero clip (also the LCP image). */
+const POSTER = '/posters/final-shot-1-1920.webp'
 
 const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
@@ -26,12 +27,23 @@ const coverStyle = {
   objectFit: 'cover',
 }
 
+/** Phones: the whole 16:9 frame, uncropped, inside FullFrameMedia's ambient fill. */
+const fitStyle = {
+  position: 'absolute',
+  inset: 0,
+  width: '100%',
+  height: '100%',
+  opacity: 0.85,
+  pointerEvents: 'none',
+  objectFit: 'contain',
+}
+
 const EASE = [0.4, 0, 0.2, 1]
 
 export default function HeroSection() {
   const isMobile = useIsMobile()
   // Phones get the 720p muted rendition; everything else the 1080p muted hero cut.
-  const src = videoSrc('showreel', isMobile ? '720' : 'hero')
+  const src = videoSrc('final-shot-1', isMobile ? '720' : 'hero')
   // Once the video is actually rendering frames, drop the poster underneath it.
   // The video sits at 85% opacity, so leaving the poster (the GLOCAL logo card)
   // behind it bleeds a faint watermark through the footage.
@@ -39,15 +51,38 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden" style={{ backgroundColor: '#080808' }}>
-      <img
-        src={POSTER}
-        alt=""
-        aria-hidden="true"
-        fetchPriority="high"
-        decoding="async"
-        style={{ ...coverStyle, opacity: playing ? 0 : coverStyle.opacity, transition: 'opacity 0.6s ease' }}
-      />
-      {!REDUCED_MOTION && (
+      {isMobile ? (
+        <FullFrameMedia poster={POSTER}>
+          {REDUCED_MOTION ? (
+            <img src={POSTER} alt="" aria-hidden="true" fetchPriority="high" decoding="async" style={fitStyle} />
+          ) : (
+            <video
+              key={src}
+              src={src}
+              poster={POSTER}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              disablePictureInPicture
+              aria-hidden="true"
+              tabIndex={-1}
+              style={fitStyle}
+            />
+          )}
+        </FullFrameMedia>
+      ) : (
+        <img
+          src={POSTER}
+          alt=""
+          aria-hidden="true"
+          fetchPriority="high"
+          decoding="async"
+          style={{ ...coverStyle, opacity: playing ? 0 : coverStyle.opacity, transition: 'opacity 0.6s ease' }}
+        />
+      )}
+      {!REDUCED_MOTION && !isMobile && (
         <video
           key={src}
           src={src}

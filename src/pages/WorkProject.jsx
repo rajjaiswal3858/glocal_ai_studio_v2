@@ -7,6 +7,7 @@ import { SITE_URL, SITE_NAME, WORDMARK } from '../data/site'
 import { videoSrc } from '../lib/media'
 import usePageMeta from '../lib/usePageMeta'
 import { EASE } from '../lib/motion'
+import useIsMobile from '../lib/useIsMobile'
 import FillImage from '../components/ui/FillImage'
 import LazyVideo from '../components/ui/LazyVideo'
 import CalendlyLink from '../components/ui/CalendlyLink'
@@ -15,14 +16,17 @@ import NotFound from './NotFound'
 
 /** Rotating gold badge pinned to the right edge of the viewport. */
 function SpinningBadge() {
+  // On phones it drops to the bottom corner and shrinks so it doesn't sit on top of the copy.
+  const isMobile = useIsMobile()
+  const size = isMobile ? '40px' : '52px'
   return (
-    <motion.div style={{ position: 'fixed', right: '20px', top: '50%', translateY: '-50%', zIndex: 50, pointerEvents: 'none' }}>
+    <motion.div style={isMobile ? { position: 'fixed', right: '16px', bottom: '16px', zIndex: 50, pointerEvents: 'none' } : { position: 'fixed', right: '20px', top: '50%', translateY: '-50%', zIndex: 50, pointerEvents: 'none' }}>
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 14, repeat: Infinity, ease: 'linear' }}
-        style={{ width: '52px', height: '52px', backgroundColor: '#DCAB59', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        style={{ width: size, height: size, backgroundColor: '#DCAB59', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <svg width={isMobile ? 22 : 28} height={isMobile ? 22 : 28} viewBox="0 0 28 28" fill="none">
           <path d="M14 2L15.5 10.5L22 7L17.5 13L26 14L17.5 15L22 21L15.5 17.5L14 26L12.5 17.5L6 21L10.5 15L2 14L10.5 13L6 7L12.5 10.5Z" fill="#000000" />
         </svg>
       </motion.div>
@@ -61,8 +65,17 @@ export default function WorkProject() {
 
       {/* Hero */}
       <section style={{ position: 'relative', minHeight: '100vh', backgroundColor: '#000000', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ position: 'absolute', inset: 0 }}>
-          <FillImage src={project.heroPoster ?? project.poster} alt={project.title} sizes="100vw" priority className="object-cover" style={{ objectPosition: 'center', opacity: 0.92 }} />
+        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+          {/* Phones: the whole 16:9 frame sits near the top over a blurred fill, clear of the title. */}
+          <img
+            src={project.heroPoster ?? project.poster}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            className="md:hidden"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(28px) brightness(0.7)', transform: 'scale(1.2)' }}
+          />
+          <FillImage src={project.heroPoster ?? project.poster} alt={project.title} sizes="100vw" priority className="object-cover object-center max-md:object-contain max-md:object-[center_12%]" style={{ opacity: 0.92 }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.65) 75%, rgba(0,0,0,0.88) 100%)' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.3) 0%, transparent 60%)' }} />
         </div>

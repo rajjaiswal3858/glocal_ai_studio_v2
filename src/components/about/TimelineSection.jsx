@@ -3,6 +3,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { TIMELINE } from '../../data/team'
 import FillImage from '../ui/FillImage'
+import useIsMobile from '../../lib/useIsMobile'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -10,6 +11,8 @@ gsap.registerPlugin(ScrollTrigger)
 export default function TimelineSection() {
   const sectionRef = useRef(null)
   const trackRef = useRef(null)
+  // Phones get wider, shorter cards so the copy isn't squeezed into a sliver.
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const section = sectionRef.current
@@ -31,17 +34,17 @@ export default function TimelineSection() {
       return () => trigger.kill()
     }, section)
     return () => ctx.revert()
-  }, [])
+  }, [isMobile])
 
   return (
     <div ref={sectionRef} style={{ width: '100%', height: '100vh', overflow: 'hidden', backgroundColor: '#080808', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-      <div ref={trackRef} style={{ display: 'flex', gap: 'clamp(32px, 4vw, 64px)', paddingLeft: 'clamp(32px, 5vw, 80px)', paddingRight: 'clamp(48vw, 52vw, 56vw)', willChange: 'transform', flexShrink: 0 }}>
+      <div ref={trackRef} style={{ display: 'flex', gap: 'clamp(32px, 4vw, 64px)', paddingLeft: 'clamp(24px, 5vw, 80px)', paddingRight: isMobile ? '11vw' : 'clamp(48vw, 52vw, 56vw)', willChange: 'transform', flexShrink: 0 }}>
         {TIMELINE.map((item) => (
-          <div key={item.year} style={{ flexShrink: 0, width: '44vw', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ position: 'relative', width: '100%', height: '52vh', overflow: 'hidden', backgroundColor: '#111', marginBottom: '28px' }}>
-              <FillImage src={item.img} alt={item.title} sizes="44vw" className="object-cover" />
+          <div key={item.year} style={{ flexShrink: 0, width: isMobile ? '78vw' : '44vw', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ position: 'relative', width: '100%', height: isMobile ? '34vh' : '52vh', overflow: 'hidden', backgroundColor: '#111', marginBottom: isMobile ? '20px' : '28px' }}>
+              <FillImage src={item.img} alt={item.title} sizes={isMobile ? '78vw' : '44vw'} className="object-cover" />
             </div>
-            <div style={{ paddingRight: 'clamp(24px, 3vw, 48px)' }}>
+            <div style={{ paddingRight: isMobile ? 0 : 'clamp(24px, 3vw, 48px)' }}>
               <span style={{ display: 'block', fontFamily: "'EB Garamond', Georgia, serif", fontSize: 'clamp(32px, 3.5vw, 52px)', fontWeight: 700, color: '#F2E4C2', lineHeight: 1, letterSpacing: '-0.02em', marginBottom: '14px' }}>
                 {item.year}
               </span>

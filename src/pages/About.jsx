@@ -7,6 +7,7 @@ import CategoryMarquee from '../components/ui/CategoryMarquee'
 import { EASE } from '../lib/motion'
 import CTASection from '../components/ui/CTASection'
 import TimelineSection from '../components/about/TimelineSection'
+import useIsMobile from '../lib/useIsMobile'
 
 const fadeUp = (y, delay = 0) => ({
   initial: { opacity: 0, y },
@@ -35,6 +36,9 @@ export default function About() {
     `About ${SITE_NAME} | AI Content Studio for Global Brands`,
     `${SITE_NAME} is an AI-native content studio for global brands. We build AI-native film, brand films, micro dramas, animation and social content, every frame in-house.`,
   )
+  const isMobile = useIsMobile()
+  // Mission and history sit side by side on desktop and stack on phones.
+  const missionGrid = { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '24px 0' : '0 clamp(40px, 6vw, 120px)', alignItems: 'start' }
 
   return (
     <div className="bg-[#080808] text-white min-h-screen font-sans overflow-x-hidden antialiased">
@@ -111,8 +115,8 @@ export default function About() {
       </section>
 
       {/* Mission + history */}
-      <section style={{ width: '100%', backgroundColor: '#080808', padding: 'clamp(80px, 10vw, 140px) clamp(32px, 8vw, 120px) clamp(24px, 3vw, 36px)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 clamp(40px, 6vw, 120px)', paddingBottom: 'clamp(64px, 8vw, 100px)', borderBottom: '1px solid rgba(255,255,255,0.07)', marginBottom: 'clamp(64px, 8vw, 100px)', alignItems: 'start' }}>
+      <section style={{ width: '100%', backgroundColor: '#080808', padding: 'clamp(80px, 10vw, 140px) clamp(24px, 8vw, 120px) clamp(24px, 3vw, 36px)' }}>
+        <div style={{ ...missionGrid, paddingBottom: 'clamp(64px, 8vw, 100px)', borderBottom: '1px solid rgba(255,255,255,0.07)', marginBottom: 'clamp(64px, 8vw, 100px)' }}>
           <MissionBlock
             num="01"
             label="Focus"
@@ -120,7 +124,7 @@ export default function About() {
             body={`We exist to prove that the best videos in the world don't have to cost the most or take the longest. AI-native production is not a shortcut, it's a new standard. At ${SITE_NAME}, we push every frame, every story, and every brief toward what's now possible, not what was previously practical.`}
           />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 clamp(40px, 6vw, 120px)', alignItems: 'start' }}>
+        <div style={missionGrid}>
           <MissionBlock
             num="02"
             label="Looking Back"
